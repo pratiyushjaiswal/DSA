@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Structure Visualizer 2.0 - Interactive C, Python & Java Algorithm Tracing</title>
+  <meta name="description" content="An interactive IDE-like educational tool for visualizing C, Python, and Java data structures (arrays, linked lists, stacks, queues, BST, search/sort, patterns) with client-side execution tracing.">
+
+  <!-- Favicon: Clean code editor icon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23007ACC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='3' width='20' height='18' rx='2'%3E%3C/rect%3E%3Cpath d='M7 8h10'%3E%3C/path%3E%3Cpath d='M7 12h10'%3E%3C/path%3E%3Cpath d='M7 16h6'%3E%3C/path%3E%3C/svg%3E">
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- CodeMirror 5 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.css">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header" id="appHeader">
+      <div class="header-left">
+        <div class="brand-title">
+          <svg class="brand-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="18" rx="2"></rect>
+            <path d="M7 8h10"></path>
+            <path d="M7 12h10"></path>
+            <path d="M7 16h6"></path>
+          </svg>
+          <h1 id="appTitle">Data Structure Visualizer</h1>
+        </div>
+
+        <div class="lang-selector-group">
+          <label for="langSelect" class="lang-label">Lang:</label>
+          <select id="langSelect" class="lang-select" aria-label="Select Programming Language">
+            <option value="c" selected>C (C99)</option>
+            <option value="python">Python (3.x)</option>
+            <option value="java">Java (17)</option>
+          </select>
+        </div>
+
+        <span class="lang-badge" id="langBadge">
+          <span class="badge-dot"></span> C99
+        </span>
+      </div>
+
+      <div class="header-center">
+        <div class="example-selector-container">
+          <label for="exampleSelect" class="selector-label">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            Example:
+          </label>
+          <select id="exampleSelect" class="example-select" aria-label="Select Data Structure Example">
+            <!-- Dynamically populated based on active language -->
+          </select>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="status-indicator" id="statusIndicator">
+          <span class="status-dot ready" id="statusDot"></span>
+          <span class="status-text" id="statusText">Ready</span>
+        </div>
+        <button id="runBtn" class="btn btn-primary" title="Execute source code in browser (Ctrl+Enter)">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>Run Code</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Mobile Navigation Tabs -->
+    <div class="mobile-tabs" id="mobileTabs">
+      <button class="mobile-tab-btn active" id="tabEditorBtn">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="16 18 22 12 16 6"></polyline>
+          <polyline points="8 6 2 12 8 18"></polyline>
+        </svg>
+        <span id="mobileEditorTabLabel">Source Editor</span>
+      </button>
+      <button class="mobile-tab-btn" id="tabVisualizerBtn">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+          <path d="M3 9h18"></path>
+          <path d="M9 21V9"></path>
+        </svg>
+        Visualization (<span id="mobileStepCount">0/0</span>)
+      </button>
+    </div>
+
+    <!-- Main Workspace -->
+    <main class="workspace-main">
+      <!-- Left: Editor Pane -->
+      <section class="pane left-pane mobile-active" id="editorPane">
+        <div class="pane-header">
+          <div class="pane-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <span id="editorFilename">main.c</span>
+          </div>
+          <div class="pane-tools">
+            <span class="active-line-badge" id="activeLineBadge">Line 1</span>
+            <button id="formatBtn" class="tool-btn" title="Reload Preset Example">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                <path d="M21 3v5h-5"></path>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                <path d="M3 21v-5h5"></path>
+              </svg>
+              <span>Reload Example</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-wrapper" id="editorWrapper">
+          <textarea id="codeEditor" aria-label="Source Code Editor"></textarea>
+        </div>
+
+        <!-- Error Panel -->
+        <div class="error-panel" id="errorPanel" style="display: none;">
+          <div class="error-header">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#F44747" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>Syntax / Execution Error</span>
+            <button class="close-error-btn" id="closeErrorBtn">&times;</button>
+          </div>
+          <div class="error-body" id="errorMsgText"></div>
+        </div>
+      </section>
+
+      <!-- Right: Visualization Workspace -->
+      <section class="pane right-pane" id="visualizerPane">
+        <div class="pane-header">
+          <div class="pane-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span id="vizTitle">Memory & Data Structure State</span>
+          </div>
+          <div class="viz-header-meta">
+            <span class="ds-type-pill" id="dsTypePill">ARRAY</span>
+            <span class="step-counter-pill" id="stepCounterPill">Step 0 / 0</span>
+          </div>
+        </div>
+
+        <!-- Toolbar Controls -->
+        <div class="controls-toolbar" id="controlsToolbar">
+          <div class="controls-group">
+            <button id="resetBtn" class="control-btn" title="Reset to Step 0 (Home)" disabled>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                <line x1="5" y1="19" x2="5" y2="5"></line>
+              </svg>
+              <span>Reset</span>
+            </button>
+            <button id="prevBtn" class="control-btn" title="Previous step (Left Arrow)" disabled>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+              <span>Prev</span>
+            </button>
+            <button id="playPauseBtn" class="control-btn btn-play" title="Play / Pause automatic execution (Space)" disabled>
+              <svg id="playIcon" viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <svg id="pauseIcon" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="display:none;">
+                <rect x="6" y="4" width="4" height="16"></rect>
+                <rect x="14" y="4" width="4" height="16"></rect>
+              </svg>
+              <span id="playPauseText">Play</span>
+            </button>
+            <button id="nextBtn" class="control-btn" title="Next step (Right Arrow)" disabled>
+              <span>Next</span>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+
+            <!-- Auto-Follow Viewport Toggle -->
+            <button id="autoFollowBtn" class="control-btn toggle-active" title="Toggle Auto-Follow Visualization (keeps active element centered)">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="7"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+                <line x1="12" y1="2" x2="12" y2="5"></line>
+                <line x1="12" y1="19" x2="12" y2="22"></line>
+                <line x1="2" y1="12" x2="5" y2="12"></line>
+                <line x1="19" y1="12" x2="22" y2="12"></line>
+              </svg>
+              <span id="autoFollowText">Auto-Follow: ON</span>
+            </button>
+          </div>
+
+          <div class="timeline-group">
+            <label for="stepSlider" class="timeline-label">Timeline:</label>
+            <input type="range" id="stepSlider" class="timeline-slider" min="0" max="0" value="0" disabled aria-label="Execution step timeline slider">
+            <div class="speed-selector">
+              <label for="speedSelect" class="speed-label">Speed:</label>
+              <select id="speedSelect" class="speed-select" aria-label="Playback speed">
+                <option value="1500">0.5x</option>
+                <option value="800" selected>1.0x</option>
+                <option value="400">2.0x</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage Container -->
+        <div class="viz-stage-container" id="vizStageContainer">
+          <!-- Step Explanation Banner -->
+          <div class="step-explanation-banner" id="explanationBanner">
+            <div class="explanation-icon-col">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#007ACC" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+            </div>
+            <div class="explanation-content">
+              <div class="explanation-op" id="explanationOp">INITIALIZE</div>
+              <div class="explanation-text" id="explanationText">Click "Run Code" to compile and trace memory step-by-step.</div>
+            </div>
+          </div>
+
+          <!-- Graphic Viewport (Responsive & Auto-Follow Enabled) -->
+          <div class="graphic-viewport" id="graphicViewport">
+            <div class="empty-state-placeholder" id="emptyPlaceholder">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#3C3C3C" stroke-width="1.5">
+                <rect x="2" y="7" width="20" height="10" rx="2"></rect>
+                <line x1="7" y1="7" x2="7" y2="17"></line>
+                <line x1="12" y1="7" x2="12" y2="17"></line>
+                <line x1="17" y1="7" x2="17" y2="17"></line>
+              </svg>
+              <p>Ready to trace memory. Click <strong>Run Code</strong> (or press <strong>Ctrl+Enter</strong>).</p>
+            </div>
+          </div>
+
+          <!-- Visual Legend -->
+          <div class="viz-legend" id="vizLegend">
+            <div class="legend-item">
+              <span class="legend-box legend-default"></span>
+              <span>Normal Element</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-box legend-accessed"></span>
+              <span>Accessed / Reading</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-box legend-modified"></span>
+              <span>Modified / Writing</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-box legend-pointer"></span>
+              <span>Active Pointer</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Execution Information Panel -->
+        <div class="info-dock" id="infoDock">
+          <div class="info-tabs-header">
+            <button class="info-tab-btn active" id="tabVarsBtn">Local Variables</button>
+            <button class="info-tab-btn" id="tabInspectorBtn">Execution Inspector</button>
+            <button class="info-tab-btn" id="tabMemoryBtn">Memory State</button>
+            <button class="info-tab-btn" id="tabConsoleBtn">Console Output (<span id="consoleCharCount">0</span>)</button>
+          </div>
+
+          <!-- Tab 1: Local Variables -->
+          <div class="info-tab-content active" id="tabVarsContent">
+            <div class="vars-table-wrapper" id="varsTableWrapper">
+              <table class="vars-table" id="varsTable">
+                <thead>
+                  <tr>
+                    <th>Variable</th>
+                    <th>Type</th>
+                    <th>Current Value</th>
+                  </tr>
+                </thead>
+                <tbody id="varsTableBody">
+                  <tr>
+                    <td colspan="3" class="table-empty">No active variables</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab 2: Execution Inspector -->
+          <div class="info-tab-content" id="tabInspectorContent">
+            <div class="inspector-card-grid" id="inspectorCardGrid">
+              <div class="inspector-item">
+                <span class="inspector-item-label">Current Operation:</span>
+                <span class="inspector-item-val" id="inspectorOp">—</span>
+              </div>
+              <div class="inspector-item">
+                <span class="inspector-item-label">Active Target / Index:</span>
+                <span class="inspector-item-val" id="inspectorTarget">—</span>
+              </div>
+              <div class="inspector-item">
+                <span class="inspector-item-label">Variable Update:</span>
+                <span class="inspector-item-val" id="inspectorVarChange">—</span>
+              </div>
+              <div class="inspector-item full-width">
+                <span class="inspector-item-label">Pedagogical Explanation:</span>
+                <span class="inspector-item-val text-explanation" id="inspectorPedagogy">Step through code to inspect state changes.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: Memory State -->
+          <div class="info-tab-content" id="tabMemoryContent">
+            <div class="mem-summary-grid" id="memSummaryGrid">
+              <div class="mem-stat-card">
+                <span class="stat-label">Structure Type</span>
+                <span class="stat-value" id="statDsType">Array</span>
+              </div>
+              <div class="mem-stat-card">
+                <span class="stat-label">Total Elements</span>
+                <span class="stat-value" id="statElemCount">0</span>
+              </div>
+              <div class="mem-stat-card">
+                <span class="stat-label">Declared Capacity</span>
+                <span class="stat-value" id="statCapacity">0</span>
+              </div>
+              <div class="mem-stat-card">
+                <span class="stat-label">Current Line</span>
+                <span class="stat-value" id="statLine">Line 0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 4: Console Output -->
+          <div class="info-tab-content" id="tabConsoleContent">
+            <pre class="console-output" id="consoleOutput">/* Program stdout output will appear here */</pre>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer Status Bar -->
+    <footer class="app-footer">
+      <div class="footer-left">
+        <span class="footer-item">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="4 17 10 11 4 5"></polyline>
+            <line x1="12" y1="19" x2="20" y2="19"></line>
+          </svg>
+          <span id="footerEngineLabel">Client-Side Tracing Engine (C / Python / Java)</span>
+        </span>
+        <span class="footer-item footer-separator">|</span>
+        <span class="footer-item" id="footerActiveOp">Idle</span>
+      </div>
+
+      <!-- Developer Credit: Exactly 'Developed by Pratyush Jaiswal' -->
+      <div class="footer-center">
+        <span class="footer-credit">Developed by Pratyush Jaiswal</span>
+      </div>
+
+      <div class="footer-right">
+        <span class="footer-item" id="footerLineCol">Ln 1, Col 1</span>
+        <span class="footer-item footer-separator">|</span>
+        <span class="footer-item">UTF-8</span>
+        <span class="footer-item footer-separator">|</span>
+        <span class="footer-item" id="footerLangMode">C (Visualizer v2.0)</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- CodeMirror Scripts (Clike for C & Java, Python mode for Python) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
+
+  <!-- Modular Visualizer Architecture -->
+  <script src="engine.js"></script>
+  <script src="visualizer.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
