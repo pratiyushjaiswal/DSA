@@ -1,7 +1,7 @@
 # Data Structure Visualizer 2.0
 **Interactive C, Python & Java Algorithm Tracing, Auto-Follow Viewport & Memory Inspection**
 
-> Developed by **Pratyush Jaiswal**
+> Developed by **Pratiyush Jaiswal**
 
 A client-side interactive educational IDE and visualization tool for understanding fundamental data structures, memory layouts, algorithms, and loop patterns during program execution.
 
@@ -41,7 +41,7 @@ Students and educators can write standard **C (C99)**, **Python (3.x)**, or **Ja
 6. **Refined Dark VS Code Design System**:
    - Polished color palette: Dark charcoal (`#1E1E1E`), panel surfaces (`#252526`, `#2D2D30`), restrained blue accents (`#007ACC`), and crisp borders (`#3C3C3C`).
    - High-contrast, prominent **Run Code** button with subtle elevation depth and distinct hover/disabled states.
-   - Developer credit discreetly displayed in the application footer: *"Developed by Pratyush Jaiswal"*.
+   - Developer credit discreetly displayed in the application footer: *"Developed by Pratiyush Jaiswal"*.
 
 ---
 
@@ -186,7 +186,7 @@ Before sharing your live deployment, verify the following:
 - [x] **Execution Verification**: Running custom and preset code generates step-by-step traces for all three languages.
 - [x] **Auto-Follow**: Viewport follows the active element and centers it smoothly with comfortable margins.
 - [x] **Mobile Responsiveness**: Viewport tested at 360px, 390px, 430px, 768px, 1024px, and 1440px. The last array element is never clipped and is fully scrollable inside the viewport.
-- [x] **Developer Credit**: Confirmed *"Developed by Pratyush Jaiswal"* is visible in the application footer.
+- [x] **Developer Credit**: Confirmed *"Developed by Pratiyush Jaiswal"* is visible in the application footer.
 - [x] **Static Independence**: Zero calls to external backend APIs; 100% client-side operation.
 
 ---
@@ -206,5 +206,5 @@ The application underwent rigorous automated testing across all 41 educational p
 
 ## 8. License & Developer Credit
 
-Developed by **Pratyush Jaiswal**.
+Developed by **Pratiyush Jaiswal**.
 Created for students, educators, and developers worldwide to learn Data Structures and Algorithms with visual clarity.

@@ -2,7 +2,7 @@
    Data Structure Visualizer 2.0 - Refined Dark Theme & Responsive Engine
    Palette: Dark charcoal (#1E1E1E), neutral gray (#252526), elevated surface (#2D2D30),
             borders (#3C3C3C), primary text (#E0E0E0), accent blue (#007ACC).
-   Developer Credit: Developed by Pratyush Jaiswal
+   Developer Credit: Developed by Pratiyush Jaiswal
    ========================================================================== */
 
 :root {
@@ -331,7 +331,7 @@ html, body {
 .workspace-main {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(360px, 460px) 1fr;
+  grid-template-columns: minmax(360px, 460px) 6px 1fr;
   overflow: hidden;
   position: relative;
   height: calc(100vh - var(--header-height) - var(--footer-height));
@@ -347,11 +347,42 @@ html, body {
 
 .left-pane {
   background-color: var(--bg-editor);
-  border-right: 1px solid var(--border-color);
+  border-right: none;
+}
+
+/* Pane Resizer / Splitter */
+.pane-resizer {
+  width: 6px;
+  background-color: var(--border-color);
+  cursor: col-resize;
+  position: relative;
+  z-index: 10;
+  transition: background-color 0.15s ease;
+  user-select: none;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pane-resizer:hover, .pane-resizer.dragging {
+  background-color: var(--accent-blue);
+}
+
+.pane-resizer .resizer-handle {
+  width: 2px;
+  height: 28px;
+  background-color: var(--text-muted);
+  border-radius: 1px;
+}
+
+.pane-resizer:hover .resizer-handle, .pane-resizer.dragging .resizer-handle {
+  background-color: #FFFFFF;
 }
 
 .right-pane {
   background-color: var(--bg-main);
+  min-width: 0;
 }
 
 /* Pane Header */
@@ -382,6 +413,33 @@ html, body {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* Editor Font Scaler Slider */
+.editor-font-scaler {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.editor-scale-slider {
+  width: 52px;
+  height: 4px;
+  accent-color: var(--accent-blue);
+  cursor: pointer;
+}
+
+.scaler-lbl {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 9px;
+  color: var(--text-muted);
 }
 
 .active-line-badge {
@@ -699,17 +757,15 @@ html, body {
   overflow-x: auto;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 24px 20px 48px 20px;
+  padding: 24px 16px 48px 16px;
   display: flex;
   flex-direction: column;
-  align-items: safe center;
   align-items: center;
   justify-content: flex-start;
   position: relative;
   scroll-behavior: smooth;
   min-height: 220px;
   width: 100%;
-  max-width: 100%;
   box-sizing: border-box;
 }
 
@@ -772,13 +828,14 @@ html, body {
   background-color: var(--accent-blue);
 }
 
-/* General Visualization Wrapper: safe centering with margin: auto */
+/* General Visualization Wrapper: safe horizontal expansion without negative overflow */
 .viz-wrapper {
-  margin: auto;
-  max-width: 100%;
+  margin: 0 auto;
+  min-width: min-content;
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
 }
 
 .viz-meta-header {
@@ -808,11 +865,11 @@ html, body {
 
 .array-viz-wrapper {
   width: max-content;
-  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
+  box-sizing: border-box;
 }
 
 .array-cells-track {
@@ -1736,6 +1793,37 @@ html, body {
    Bottom Info Dock
    ========================================================================== */
 
+/* Dock Resizer / Splitter */
+.dock-resizer {
+  height: 6px;
+  background-color: var(--border-color);
+  cursor: row-resize;
+  position: relative;
+  z-index: 10;
+  transition: background-color 0.15s ease;
+  user-select: none;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dock-resizer:hover, .dock-resizer.dragging {
+  background-color: var(--accent-blue);
+}
+
+.dock-resizer .dock-resizer-handle {
+  width: 32px;
+  height: 2px;
+  background-color: var(--text-muted);
+  border-radius: 1px;
+}
+
+.dock-resizer:hover .dock-resizer-handle, .dock-resizer.dragging .dock-resizer-handle {
+  background-color: #FFFFFF;
+}
+
 .info-dock {
   height: var(--dock-height);
   background-color: var(--bg-main);
@@ -2419,6 +2507,76 @@ html, body {
   .mult-row-card {
     padding: 4px 6px;
     font-size: 10.5px;
+  }
+
+  /* Mobile block scaling so large visualization boxes don't get cut off */
+  .array-cells-track {
+    padding: 24px 8px 14px 8px;
+    gap: 6px;
+  }
+
+  .array-cell-unit {
+    min-width: 50px;
+  }
+
+  .array-cell-box {
+    width: 50px;
+    height: 50px;
+  }
+
+  .array-cell-box .cell-val {
+    font-size: 15px;
+  }
+
+  .ll-track {
+    padding: 24px 8px 16px 8px;
+    gap: 0;
+  }
+
+  .ll-node-card {
+    width: 82px;
+  }
+
+  .node-compartments {
+    height: 42px;
+  }
+
+  .node-data-val {
+    font-size: 13.5px;
+  }
+
+  .ll-arrow-connector {
+    width: 26px;
+  }
+
+  .bst-canvas-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .bst-canvas {
+    min-width: min-content;
+  }
+
+  /* Pane resizer hidden on stacked mobile layout */
+  .pane-resizer {
+    display: none !important;
+  }
+
+  .dock-resizer {
+    height: 8px;
+  }
+
+  /* Output & State Mobile Tab View */
+  .info-dock.mobile-standalone-output {
+    display: flex !important;
+    position: relative;
+    border-top: 2px solid var(--accent-blue);
+    background-color: var(--bg-secondary);
+    min-height: 380px;
+    height: auto;
+    z-index: 25;
   }
 }
 

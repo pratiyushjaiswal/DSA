@@ -2,7 +2,7 @@
  * Data Structure Visualizer - Application Controller (Version 2.0)
  * Coordinates Multi-Language Support (C, Python, Java), CodeMirror Editor,
  * CEngine, CVisualizer, Auto-Follow Viewport Following, and Pedagogical Inspection.
- * Developer Credit: Developed by Pratyush Jaiswal
+ * Developer Credit: Developed by Pratiyush Jaiswal
  */
 
 (function () {
@@ -870,8 +870,14 @@ for i in range(1, 7):
     footerLangMode: document.getElementById('footerLangMode'),
     footerEngineLabel: document.getElementById('footerEngineLabel'),
 
+    workspaceMain: document.getElementById('workspaceMain'),
+    paneResizer: document.getElementById('paneResizer'),
+    dockResizer: document.getElementById('dockResizer'),
+    editorFontSizeSlider: document.getElementById('editorFontSizeSlider'),
+
     tabEditorBtn: document.getElementById('tabEditorBtn'),
     tabVisualizerBtn: document.getElementById('tabVisualizerBtn'),
+    tabOutputBtn: document.getElementById('tabOutputBtn'),
     editorPane: document.getElementById('editorPane'),
     visualizerPane: document.getElementById('visualizerPane'),
     mobileStepCount: document.getElementById('mobileStepCount'),
@@ -1343,17 +1349,31 @@ for i in range(1, 7):
     if (tab === 'editor') {
       dom.tabEditorBtn.classList.add('active');
       dom.tabVisualizerBtn.classList.remove('active');
+      if (dom.tabOutputBtn) dom.tabOutputBtn.classList.remove('active');
       dom.editorPane.classList.add('mobile-active');
       dom.visualizerPane.classList.remove('mobile-active');
+      if (dom.infoDock) dom.infoDock.classList.remove('mobile-standalone-output');
       if (cmEditor) cmEditor.refresh();
-    } else {
+    } else if (tab === 'visualizer') {
       dom.tabVisualizerBtn.classList.add('active');
       dom.tabEditorBtn.classList.remove('active');
+      if (dom.tabOutputBtn) dom.tabOutputBtn.classList.remove('active');
       dom.visualizerPane.classList.add('mobile-active');
       dom.editorPane.classList.remove('mobile-active');
+      if (dom.infoDock) dom.infoDock.classList.remove('mobile-standalone-output');
       // Trigger viewport auto-follow when visualizer becomes visible
       if (isAutoFollowEnabled) {
         setTimeout(() => CVisualizer.autoFollow(dom.graphicViewport), 50);
+      }
+    } else if (tab === 'output') {
+      if (dom.tabOutputBtn) dom.tabOutputBtn.classList.add('active');
+      dom.tabEditorBtn.classList.remove('active');
+      dom.tabVisualizerBtn.classList.remove('active');
+      dom.visualizerPane.classList.add('mobile-active');
+      dom.editorPane.classList.remove('mobile-active');
+      if (dom.infoDock) {
+        dom.infoDock.classList.add('mobile-standalone-output');
+        setTimeout(() => dom.infoDock.scrollIntoView({ behavior: 'smooth' }), 50);
       }
     }
   }
@@ -1430,6 +1450,143 @@ for i in range(1, 7):
 
     dom.tabEditorBtn.addEventListener('click', () => switchMobileTab('editor'));
     dom.tabVisualizerBtn.addEventListener('click', () => switchMobileTab('visualizer'));
+    if (dom.tabOutputBtn) {
+      dom.tabOutputBtn.addEventListener('click', () => switchMobileTab('output'));
+    }
+
+    // Font size scaler slider
+    if (dom.editorFontSizeSlider) {
+      dom.editorFontSizeSlider.addEventListener('input', (e) => {
+        const sz = e.target.value;
+        const cmEl = document.querySelector('.CodeMirror');
+        if (cmEl) {
+          cmEl.style.fontSize = `${sz}px`;
+          if (cmEditor) cmEditor.refresh();
+        }
+      });
+    }
+
+    // Draggable Splitter Divider between Editor & Visualizer
+    if (dom.paneResizer && dom.workspaceMain) {
+      let isDraggingPane = false;
+      const onPaneMove = (clientX) => {
+        const rect = dom.workspaceMain.getBoundingClientRect();
+        const minW = 220;
+        const maxW = rect.width - 240;
+        let w = clientX - rect.left;
+        w = Math.max(minW, Math.min(w, maxW));
+        dom.workspaceMain.style.gridTemplateColumns = `${w}px 6px 1fr`;
+        if (cmEditor) cmEditor.refresh();
+      };
+
+      dom.paneResizer.addEventListener('mousedown', (e) => {
+        isDraggingPane = true;
+        dom.paneResizer.classList.add('dragging');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (isDraggingPane) onPaneMove(e.clientX);
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDraggingPane) {
+          isDraggingPane = false;
+          dom.paneResizer.classList.remove('dragging');
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+          if (cmEditor) cmEditor.refresh();
+        }
+      });
+
+      dom.paneResizer.addEventListener('dblclick', () => {
+        dom.workspaceMain.style.gridTemplateColumns = 'minmax(360px, 460px) 6px 1fr';
+        if (cmEditor) cmEditor.refresh();
+      });
+
+      // Touch support
+      dom.paneResizer.addEventListener('touchstart', (e) => {
+        if (window.innerWidth <= 900) return;
+        isDraggingPane = true;
+        dom.paneResizer.classList.add('dragging');
+      }, { passive: true });
+
+      window.addEventListener('touchmove', (e) => {
+        if (isDraggingPane && e.touches[0]) onPaneMove(e.touches[0].clientX);
+      }, { passive: true });
+
+      window.addEventListener('touchend', () => {
+        if (isDraggingPane) {
+          isDraggingPane = false;
+          dom.paneResizer.classList.remove('dragging');
+          if (cmEditor) cmEditor.refresh();
+        }
+      });
+    }
+
+    // Draggable Splitter Divider for Dock / Output Section
+    if (dom.dockResizer && dom.infoDock) {
+      let isDraggingDock = false;
+      let startY = 0;
+      let startH = 180;
+
+      const onDockMove = (clientY) => {
+        const delta = startY - clientY;
+        let h = startH + delta;
+        const maxH = (dom.visualizerPane ? dom.visualizerPane.clientHeight : window.innerHeight) - 120;
+        h = Math.max(70, Math.min(h, maxH));
+        dom.infoDock.style.height = `${h}px`;
+        dom.infoDock.style.maxHeight = `${h}px`;
+      };
+
+      dom.dockResizer.addEventListener('mousedown', (e) => {
+        isDraggingDock = true;
+        dom.dockResizer.classList.add('dragging');
+        startY = e.clientY;
+        startH = dom.infoDock.getBoundingClientRect().height;
+        document.body.style.cursor = 'row-resize';
+        document.body.style.userSelect = 'none';
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (isDraggingDock) onDockMove(e.clientY);
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDraggingDock) {
+          isDraggingDock = false;
+          dom.dockResizer.classList.remove('dragging');
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+        }
+      });
+
+      dom.dockResizer.addEventListener('dblclick', () => {
+        dom.infoDock.style.height = '180px';
+        dom.infoDock.style.maxHeight = '';
+      });
+
+      // Touch support
+      dom.dockResizer.addEventListener('touchstart', (e) => {
+        if (!e.touches[0]) return;
+        isDraggingDock = true;
+        dom.dockResizer.classList.add('dragging');
+        startY = e.touches[0].clientY;
+        startH = dom.infoDock.getBoundingClientRect().height;
+      }, { passive: true });
+
+      window.addEventListener('touchmove', (e) => {
+        if (isDraggingDock && e.touches[0]) onDockMove(e.touches[0].clientY);
+      }, { passive: true });
+
+      window.addEventListener('touchend', () => {
+        if (isDraggingDock) {
+          isDraggingDock = false;
+          dom.dockResizer.classList.remove('dragging');
+        }
+      });
+    }
 
     // Keyboard Shortcuts
     window.addEventListener('keydown', (e) => {

@@ -3,7 +3,7 @@
  * Renders Array, Singly Linked List, Stack, Queue, Binary Search Tree,
  * Searching/Sorting, and Incremental Pattern Printing.
  * Features: Automatic Viewport Auto-Follow, High-Contrast Highlighting, and Responsive Geometry.
- * Developer Credit: Developed by Pratyush Jaiswal
+ * Developer Credit: Developed by Pratiyush Jaiswal
  */
 
 (function (root, factory) {

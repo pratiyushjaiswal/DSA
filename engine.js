@@ -7,7 +7,7 @@
  *
  * Supports: Arrays, Singly Linked Lists, Stacks, Queues, Binary Search Trees,
  * Searching/Sorting Algorithms, Loops, and Step-by-Step Pattern Printing.
- * Developer Credit: Developed by Pratyush Jaiswal
+ * Developer Credit: Developed by Pratiyush Jaiswal
  */
 
 (function (root, factory) {
