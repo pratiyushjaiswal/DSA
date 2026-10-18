@@ -835,6 +835,7 @@ for i in range(1, 7):
     nextBtn: document.getElementById('nextBtn'),
     autoFollowBtn: document.getElementById('autoFollowBtn'),
     autoFollowText: document.getElementById('autoFollowText'),
+    autoFollowTextShort: document.getElementById('autoFollowTextShort'),
     stepSlider: document.getElementById('stepSlider'),
     speedSelect: document.getElementById('speedSelect'),
 
@@ -867,21 +868,26 @@ for i in range(1, 7):
 
     footerActiveOp: document.getElementById('footerActiveOp'),
     footerLineCol: document.getElementById('footerLineCol'),
-    footerLangMode: document.getElementById('footerLangMode'),
-    footerEngineLabel: document.getElementById('footerEngineLabel'),
-
-    workspaceMain: document.getElementById('workspaceMain'),
-    paneResizer: document.getElementById('paneResizer'),
-    dockResizer: document.getElementById('dockResizer'),
-    editorFontSizeSlider: document.getElementById('editorFontSizeSlider'),
-
     tabEditorBtn: document.getElementById('tabEditorBtn'),
     tabVisualizerBtn: document.getElementById('tabVisualizerBtn'),
-    tabOutputBtn: document.getElementById('tabOutputBtn'),
+    tabMobileDockBtn: document.getElementById('tabMobileDockBtn'),
     editorPane: document.getElementById('editorPane'),
     visualizerPane: document.getElementById('visualizerPane'),
     mobileStepCount: document.getElementById('mobileStepCount'),
-    mobileEditorTabLabel: document.getElementById('mobileEditorTabLabel')
+    mobileStepCountShort: document.getElementById('mobileStepCountShort'),
+    mobileEditorTabLabel: document.getElementById('mobileEditorTabLabel'),
+
+    workspaceMain: document.getElementById('workspaceMain'),
+    horizontalResizer: document.getElementById('horizontalResizer'),
+    verticalResizer: document.getElementById('verticalResizer'),
+    maximizeEditorBtn: document.getElementById('maximizeEditorBtn'),
+    maximizeVisualizerBtn: document.getElementById('maximizeVisualizerBtn'),
+    maximizeDockBtn: document.getElementById('maximizeDockBtn'),
+    collapseDockBtn: document.getElementById('collapseDockBtn'),
+    collapseDockIcon: document.getElementById('collapseDockIcon'),
+    expandDockIcon: document.getElementById('expandDockIcon'),
+    infoDock: document.getElementById('infoDock'),
+    vizStageContainer: document.getElementById('vizStageContainer')
   } : {};
 
 
@@ -1010,7 +1016,7 @@ for i in range(1, 7):
     dom.langBadge.innerHTML = `<span class="badge-dot"></span> ${badgeText}`;
     dom.footerLangMode.textContent = footerText;
     if (dom.mobileEditorTabLabel) {
-      dom.mobileEditorTabLabel.textContent = `${badgeText} Editor`;
+      dom.mobileEditorTabLabel.textContent = (typeof window !== 'undefined' && window.innerWidth <= 480) ? badgeText : `${badgeText} Editor`;
     }
 
     populateExamplesDropdown(lang);
@@ -1104,7 +1110,8 @@ for i in range(1, 7):
     dom.stepSlider.value = 0;
     dom.stepSlider.max = 0;
     dom.stepCounterPill.textContent = 'Step 0 / 0';
-    dom.mobileStepCount.textContent = '0/0';
+    if (dom.mobileStepCount) dom.mobileStepCount.textContent = '0/0';
+    if (dom.mobileStepCountShort) dom.mobileStepCountShort.textContent = '0/0';
     dom.explanationOp.textContent = 'INITIALIZE';
     dom.explanationText.textContent = 'Click "Run Code" to compile and trace memory step-by-step.';
     CVisualizer.render(dom.graphicViewport, null);
@@ -1191,11 +1198,13 @@ for i in range(1, 7):
     isAutoFollowEnabled = !isAutoFollowEnabled;
     if (isAutoFollowEnabled) {
       dom.autoFollowBtn.classList.add('toggle-active');
-      dom.autoFollowText.textContent = 'Auto-Follow: ON';
+      if (dom.autoFollowText) dom.autoFollowText.textContent = 'Auto-Follow: ON';
+      if (dom.autoFollowTextShort) dom.autoFollowTextShort.textContent = 'Auto: ON';
       CVisualizer.autoFollow(dom.graphicViewport);
     } else {
       dom.autoFollowBtn.classList.remove('toggle-active');
-      dom.autoFollowText.textContent = 'Auto-Follow: OFF';
+      if (dom.autoFollowText) dom.autoFollowText.textContent = 'Auto-Follow: OFF';
+      if (dom.autoFollowTextShort) dom.autoFollowTextShort.textContent = 'Auto: OFF';
     }
   }
 
@@ -1209,7 +1218,8 @@ for i in range(1, 7):
 
     const totalSteps = currentTrace.length;
     dom.stepCounterPill.textContent = `Step ${currentStepIndex + 1} / ${totalSteps}`;
-    dom.mobileStepCount.textContent = `${currentStepIndex + 1}/${totalSteps}`;
+    if (dom.mobileStepCount) dom.mobileStepCount.textContent = `${currentStepIndex + 1}/${totalSteps}`;
+    if (dom.mobileStepCountShort) dom.mobileStepCountShort.textContent = `${currentStepIndex + 1}/${totalSteps}`;
     dom.dsTypePill.textContent = (step.ds_type || 'ARRAY').toUpperCase().replace(/_/g, ' ');
     dom.explanationOp.textContent = (step.operation || 'OPERATION').toUpperCase().replace(/_/g, ' ');
     dom.explanationText.textContent = step.explanation || '';
@@ -1346,36 +1356,265 @@ for i in range(1, 7):
   }
 
   function switchMobileTab(tab) {
+    if (!dom.tabEditorBtn || !dom.tabVisualizerBtn) return;
+    dom.tabEditorBtn.classList.remove('active');
+    dom.tabVisualizerBtn.classList.remove('active');
+    if (dom.tabMobileDockBtn) dom.tabMobileDockBtn.classList.remove('active');
+
     if (tab === 'editor') {
       dom.tabEditorBtn.classList.add('active');
-      dom.tabVisualizerBtn.classList.remove('active');
-      if (dom.tabOutputBtn) dom.tabOutputBtn.classList.remove('active');
       dom.editorPane.classList.add('mobile-active');
       dom.visualizerPane.classList.remove('mobile-active');
-      if (dom.infoDock) dom.infoDock.classList.remove('mobile-standalone-output');
       if (cmEditor) cmEditor.refresh();
-    } else if (tab === 'visualizer') {
-      dom.tabVisualizerBtn.classList.add('active');
-      dom.tabEditorBtn.classList.remove('active');
-      if (dom.tabOutputBtn) dom.tabOutputBtn.classList.remove('active');
+    } else if (tab === 'dock') {
+      if (dom.tabMobileDockBtn) dom.tabMobileDockBtn.classList.add('active');
       dom.visualizerPane.classList.add('mobile-active');
       dom.editorPane.classList.remove('mobile-active');
-      if (dom.infoDock) dom.infoDock.classList.remove('mobile-standalone-output');
+      if (dom.infoDock) dom.infoDock.classList.remove('dock-collapsed');
+      setTimeout(() => {
+        if (dom.infoDock) {
+          dom.infoDock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 50);
+    } else {
+      // visualizer
+      dom.tabVisualizerBtn.classList.add('active');
+      dom.visualizerPane.classList.add('mobile-active');
+      dom.editorPane.classList.remove('mobile-active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       // Trigger viewport auto-follow when visualizer becomes visible
       if (isAutoFollowEnabled) {
         setTimeout(() => CVisualizer.autoFollow(dom.graphicViewport), 50);
       }
-    } else if (tab === 'output') {
-      if (dom.tabOutputBtn) dom.tabOutputBtn.classList.add('active');
-      dom.tabEditorBtn.classList.remove('active');
-      dom.tabVisualizerBtn.classList.remove('active');
-      dom.visualizerPane.classList.add('mobile-active');
-      dom.editorPane.classList.remove('mobile-active');
-      if (dom.infoDock) {
-        dom.infoDock.classList.add('mobile-standalone-output');
-        setTimeout(() => dom.infoDock.scrollIntoView({ behavior: 'smooth' }), 50);
+    }
+  }
+
+  // ==========================================================================
+  // DYNAMIC WORKSPACE RESIZING & MAXIMIZE CONTROLLERS (VS Code / Antigravity Style)
+  // ==========================================================================
+
+  let isMaximizedEditor = false;
+  let isMaximizedVisualizer = false;
+  let isMaximizedDock = false;
+  let isCollapsedDock = false;
+
+  function initWorkspaceResizers() {
+    if (!dom.workspaceMain || !dom.horizontalResizer || !dom.verticalResizer) return;
+
+    // Restore saved layout if on desktop
+    const isDesktop = (typeof window !== 'undefined' && window.innerWidth > 900);
+    if (isDesktop) {
+      try {
+        const savedEditorW = localStorage.getItem('dsa_ide_editor_width');
+        if (savedEditorW && dom.editorPane) {
+          const w = parseInt(savedEditorW, 10);
+          if (w >= 200 && w <= window.innerWidth - 260) {
+            dom.editorPane.style.width = `${w}px`;
+            document.documentElement.style.setProperty('--editor-width', `${w}px`);
+          }
+        }
+        const savedDockH = localStorage.getItem('dsa_ide_dock_height');
+        if (savedDockH && dom.infoDock) {
+          const h = parseInt(savedDockH, 10);
+          if (h >= 32 && h <= 500) {
+            dom.infoDock.style.height = `${h}px`;
+            document.documentElement.style.setProperty('--dock-height', `${h}px`);
+          }
+        }
+      } catch (err) {
+        // localStorage unavailable
       }
     }
+
+    // 1. Horizontal Resizer (Editor <-> Visualizer)
+    let isDraggingH = false;
+    let startX = 0;
+    let startWidth = 0;
+
+    function onPointerDownH(e) {
+      if (window.innerWidth <= 900) return;
+      isDraggingH = true;
+      startX = e.touches ? e.touches[0].clientX : e.clientX;
+      startWidth = dom.editorPane.getBoundingClientRect().width;
+      document.body.classList.add('resizing-h');
+      dom.horizontalResizer.classList.add('is-dragging');
+      e.preventDefault();
+    }
+
+    function onPointerMoveH(e) {
+      if (!isDraggingH) return;
+      const currentX = e.touches ? e.touches[0].clientX : e.clientX;
+      const mainRect = dom.workspaceMain.getBoundingClientRect();
+      const minW = 200;
+      const maxW = Math.max(minW + 50, mainRect.width - 260);
+      let newW = startWidth + (currentX - startX);
+      newW = Math.max(minW, Math.min(newW, maxW));
+
+      dom.editorPane.style.width = `${newW}px`;
+      document.documentElement.style.setProperty('--editor-width', `${newW}px`);
+      if (cmEditor) cmEditor.refresh();
+      e.preventDefault();
+    }
+
+    function onPointerUpH() {
+      if (!isDraggingH) return;
+      isDraggingH = false;
+      document.body.classList.remove('resizing-h');
+      dom.horizontalResizer.classList.remove('is-dragging');
+      if (cmEditor) cmEditor.refresh();
+      if (isAutoFollowEnabled) CVisualizer.autoFollow(dom.graphicViewport);
+
+      try {
+        const finalW = Math.round(dom.editorPane.getBoundingClientRect().width);
+        localStorage.setItem('dsa_ide_editor_width', finalW);
+      } catch (err) {}
+    }
+
+    dom.horizontalResizer.addEventListener('mousedown', onPointerDownH);
+    dom.horizontalResizer.addEventListener('touchstart', onPointerDownH, { passive: false });
+    window.addEventListener('mousemove', onPointerMoveH, { passive: false });
+    window.addEventListener('touchmove', onPointerMoveH, { passive: false });
+    window.addEventListener('mouseup', onPointerUpH);
+    window.addEventListener('touchend', onPointerUpH);
+
+    // Double-click on horizontal resizer resets to 50/50 split
+    dom.horizontalResizer.addEventListener('dblclick', () => {
+      if (window.innerWidth <= 900) return;
+      const mainRect = dom.workspaceMain.getBoundingClientRect();
+      const halfW = Math.round((mainRect.width - 6) / 2);
+      dom.editorPane.style.width = `${halfW}px`;
+      document.documentElement.style.setProperty('--editor-width', `${halfW}px`);
+      if (cmEditor) cmEditor.refresh();
+      try { localStorage.setItem('dsa_ide_editor_width', halfW); } catch (err) {}
+    });
+
+    // 2. Vertical Resizer (Graphic Viewport <-> Bottom Dock)
+    let isDraggingV = false;
+    let startY = 0;
+    let startHeight = 0;
+
+    function onPointerDownV(e) {
+      if (window.innerWidth <= 900) return;
+      isDraggingV = true;
+      startY = e.touches ? e.touches[0].clientY : e.clientY;
+      startHeight = dom.infoDock.getBoundingClientRect().height;
+      document.body.classList.add('resizing-v');
+      dom.verticalResizer.classList.add('is-dragging');
+      e.preventDefault();
+    }
+
+    function onPointerMoveV(e) {
+      if (!isDraggingV) return;
+      const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+      const vizRect = dom.visualizerPane.getBoundingClientRect();
+      const minH = 32;
+      const maxH = Math.max(minH + 50, vizRect.height - 120);
+      let newH = startHeight - (currentY - startY);
+      newH = Math.max(minH, Math.min(newH, maxH));
+
+      dom.infoDock.style.height = `${newH}px`;
+      document.documentElement.style.setProperty('--dock-height', `${newH}px`);
+      e.preventDefault();
+    }
+
+    function onPointerUpV() {
+      if (!isDraggingV) return;
+      isDraggingV = false;
+      document.body.classList.remove('resizing-v');
+      dom.verticalResizer.classList.remove('is-dragging');
+      if (isAutoFollowEnabled) CVisualizer.autoFollow(dom.graphicViewport);
+
+      try {
+        const finalH = Math.round(dom.infoDock.getBoundingClientRect().height);
+        localStorage.setItem('dsa_ide_dock_height', finalH);
+      } catch (err) {}
+    }
+
+    dom.verticalResizer.addEventListener('mousedown', onPointerDownV);
+    dom.verticalResizer.addEventListener('touchstart', onPointerDownV, { passive: false });
+    window.addEventListener('mousemove', onPointerMoveV, { passive: false });
+    window.addEventListener('touchmove', onPointerMoveV, { passive: false });
+    window.addEventListener('mouseup', onPointerUpV);
+    window.addEventListener('touchend', onPointerUpV);
+
+    // Double click on vertical resizer toggles collapse/restore
+    dom.verticalResizer.addEventListener('dblclick', toggleCollapseDock);
+  }
+
+  // --- Maximize & Collapse Helpers ---
+  function toggleMaximizeEditor() {
+    isMaximizedEditor = !isMaximizedEditor;
+    if (isMaximizedVisualizer) {
+      isMaximizedVisualizer = false;
+      dom.visualizerPane.classList.remove('pane-maximized', 'pane-hidden');
+    }
+
+    if (isMaximizedEditor) {
+      dom.editorPane.classList.add('pane-maximized');
+      dom.visualizerPane.classList.add('pane-hidden');
+      dom.horizontalResizer.classList.add('gutter-hidden');
+      updateMaximizeIcon(dom.maximizeEditorBtn, true);
+    } else {
+      dom.editorPane.classList.remove('pane-maximized');
+      dom.visualizerPane.classList.remove('pane-hidden');
+      dom.horizontalResizer.classList.remove('gutter-hidden');
+      updateMaximizeIcon(dom.maximizeEditorBtn, false);
+    }
+    if (cmEditor) cmEditor.refresh();
+  }
+
+  function toggleMaximizeVisualizer() {
+    isMaximizedVisualizer = !isMaximizedVisualizer;
+    if (isMaximizedEditor) {
+      isMaximizedEditor = false;
+      dom.editorPane.classList.remove('pane-maximized', 'pane-hidden');
+    }
+
+    if (isMaximizedVisualizer) {
+      dom.visualizerPane.classList.add('pane-maximized');
+      dom.editorPane.classList.add('pane-hidden');
+      dom.horizontalResizer.classList.add('gutter-hidden');
+      updateMaximizeIcon(dom.maximizeVisualizerBtn, true);
+    } else {
+      dom.visualizerPane.classList.remove('pane-maximized');
+      dom.editorPane.classList.remove('pane-hidden');
+      dom.horizontalResizer.classList.remove('gutter-hidden');
+      updateMaximizeIcon(dom.maximizeVisualizerBtn, false);
+    }
+    if (isAutoFollowEnabled) CVisualizer.autoFollow(dom.graphicViewport);
+  }
+
+  function toggleCollapseDock() {
+    isCollapsedDock = !isCollapsedDock;
+    if (isCollapsedDock) {
+      dom.infoDock.classList.add('dock-collapsed');
+      if (dom.collapseDockIcon) dom.collapseDockIcon.style.display = 'none';
+      if (dom.expandDockIcon) dom.expandDockIcon.style.display = 'inline';
+    } else {
+      dom.infoDock.classList.remove('dock-collapsed');
+      if (dom.collapseDockIcon) dom.collapseDockIcon.style.display = 'inline';
+      if (dom.expandDockIcon) dom.expandDockIcon.style.display = 'none';
+    }
+    if (isAutoFollowEnabled) CVisualizer.autoFollow(dom.graphicViewport);
+  }
+
+  function toggleMaximizeDock() {
+    isMaximizedDock = !isMaximizedDock;
+    if (isMaximizedDock) {
+      dom.infoDock.classList.add('dock-maximized');
+      dom.infoDock.classList.remove('dock-collapsed');
+    } else {
+      dom.infoDock.classList.remove('dock-maximized');
+    }
+    if (isAutoFollowEnabled) CVisualizer.autoFollow(dom.graphicViewport);
+  }
+
+  function updateMaximizeIcon(btn, isMax) {
+    if (!btn) return;
+    const maxIcon = btn.querySelector('.maximize-icon');
+    const restoreIcon = btn.querySelector('.restore-icon');
+    if (maxIcon) maxIcon.style.display = isMax ? 'none' : 'inline';
+    if (restoreIcon) restoreIcon.style.display = isMax ? 'inline' : 'none';
   }
 
   function updateStatus(state, message) {
@@ -1450,143 +1689,16 @@ for i in range(1, 7):
 
     dom.tabEditorBtn.addEventListener('click', () => switchMobileTab('editor'));
     dom.tabVisualizerBtn.addEventListener('click', () => switchMobileTab('visualizer'));
-    if (dom.tabOutputBtn) {
-      dom.tabOutputBtn.addEventListener('click', () => switchMobileTab('output'));
+    if (dom.tabMobileDockBtn) {
+      dom.tabMobileDockBtn.addEventListener('click', () => switchMobileTab('dock'));
     }
 
-    // Font size scaler slider
-    if (dom.editorFontSizeSlider) {
-      dom.editorFontSizeSlider.addEventListener('input', (e) => {
-        const sz = e.target.value;
-        const cmEl = document.querySelector('.CodeMirror');
-        if (cmEl) {
-          cmEl.style.fontSize = `${sz}px`;
-          if (cmEditor) cmEditor.refresh();
-        }
-      });
-    }
+    if (dom.maximizeEditorBtn) dom.maximizeEditorBtn.addEventListener('click', toggleMaximizeEditor);
+    if (dom.maximizeVisualizerBtn) dom.maximizeVisualizerBtn.addEventListener('click', toggleMaximizeVisualizer);
+    if (dom.collapseDockBtn) dom.collapseDockBtn.addEventListener('click', toggleCollapseDock);
+    if (dom.maximizeDockBtn) dom.maximizeDockBtn.addEventListener('click', toggleMaximizeDock);
 
-    // Draggable Splitter Divider between Editor & Visualizer
-    if (dom.paneResizer && dom.workspaceMain) {
-      let isDraggingPane = false;
-      const onPaneMove = (clientX) => {
-        const rect = dom.workspaceMain.getBoundingClientRect();
-        const minW = 220;
-        const maxW = rect.width - 240;
-        let w = clientX - rect.left;
-        w = Math.max(minW, Math.min(w, maxW));
-        dom.workspaceMain.style.gridTemplateColumns = `${w}px 6px 1fr`;
-        if (cmEditor) cmEditor.refresh();
-      };
-
-      dom.paneResizer.addEventListener('mousedown', (e) => {
-        isDraggingPane = true;
-        dom.paneResizer.classList.add('dragging');
-        document.body.style.cursor = 'col-resize';
-        document.body.style.userSelect = 'none';
-      });
-
-      window.addEventListener('mousemove', (e) => {
-        if (isDraggingPane) onPaneMove(e.clientX);
-      });
-
-      window.addEventListener('mouseup', () => {
-        if (isDraggingPane) {
-          isDraggingPane = false;
-          dom.paneResizer.classList.remove('dragging');
-          document.body.style.cursor = '';
-          document.body.style.userSelect = '';
-          if (cmEditor) cmEditor.refresh();
-        }
-      });
-
-      dom.paneResizer.addEventListener('dblclick', () => {
-        dom.workspaceMain.style.gridTemplateColumns = 'minmax(360px, 460px) 6px 1fr';
-        if (cmEditor) cmEditor.refresh();
-      });
-
-      // Touch support
-      dom.paneResizer.addEventListener('touchstart', (e) => {
-        if (window.innerWidth <= 900) return;
-        isDraggingPane = true;
-        dom.paneResizer.classList.add('dragging');
-      }, { passive: true });
-
-      window.addEventListener('touchmove', (e) => {
-        if (isDraggingPane && e.touches[0]) onPaneMove(e.touches[0].clientX);
-      }, { passive: true });
-
-      window.addEventListener('touchend', () => {
-        if (isDraggingPane) {
-          isDraggingPane = false;
-          dom.paneResizer.classList.remove('dragging');
-          if (cmEditor) cmEditor.refresh();
-        }
-      });
-    }
-
-    // Draggable Splitter Divider for Dock / Output Section
-    if (dom.dockResizer && dom.infoDock) {
-      let isDraggingDock = false;
-      let startY = 0;
-      let startH = 180;
-
-      const onDockMove = (clientY) => {
-        const delta = startY - clientY;
-        let h = startH + delta;
-        const maxH = (dom.visualizerPane ? dom.visualizerPane.clientHeight : window.innerHeight) - 120;
-        h = Math.max(70, Math.min(h, maxH));
-        dom.infoDock.style.height = `${h}px`;
-        dom.infoDock.style.maxHeight = `${h}px`;
-      };
-
-      dom.dockResizer.addEventListener('mousedown', (e) => {
-        isDraggingDock = true;
-        dom.dockResizer.classList.add('dragging');
-        startY = e.clientY;
-        startH = dom.infoDock.getBoundingClientRect().height;
-        document.body.style.cursor = 'row-resize';
-        document.body.style.userSelect = 'none';
-      });
-
-      window.addEventListener('mousemove', (e) => {
-        if (isDraggingDock) onDockMove(e.clientY);
-      });
-
-      window.addEventListener('mouseup', () => {
-        if (isDraggingDock) {
-          isDraggingDock = false;
-          dom.dockResizer.classList.remove('dragging');
-          document.body.style.cursor = '';
-          document.body.style.userSelect = '';
-        }
-      });
-
-      dom.dockResizer.addEventListener('dblclick', () => {
-        dom.infoDock.style.height = '180px';
-        dom.infoDock.style.maxHeight = '';
-      });
-
-      // Touch support
-      dom.dockResizer.addEventListener('touchstart', (e) => {
-        if (!e.touches[0]) return;
-        isDraggingDock = true;
-        dom.dockResizer.classList.add('dragging');
-        startY = e.touches[0].clientY;
-        startH = dom.infoDock.getBoundingClientRect().height;
-      }, { passive: true });
-
-      window.addEventListener('touchmove', (e) => {
-        if (isDraggingDock && e.touches[0]) onDockMove(e.touches[0].clientY);
-      }, { passive: true });
-
-      window.addEventListener('touchend', () => {
-        if (isDraggingDock) {
-          isDraggingDock = false;
-          dom.dockResizer.classList.remove('dragging');
-        }
-      });
-    }
+    initWorkspaceResizers();
 
     // Keyboard Shortcuts
     window.addEventListener('keydown', (e) => {

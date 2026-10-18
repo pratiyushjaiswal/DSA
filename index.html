@@ -32,7 +32,7 @@
             <path d="M7 12h10"></path>
             <path d="M7 16h6"></path>
           </svg>
-          <h1 id="appTitle">Data Structure Visualizer</h1>
+          <h1 id="appTitle"><span class="brand-full">Data Structure Visualizer</span><span class="brand-short">DS Visualizer</span></h1>
         </div>
 
         <div class="lang-selector-group">
@@ -75,7 +75,8 @@
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
             <polygon points="5 3 19 12 5 21 5 3"></polygon>
           </svg>
-          <span>Run Code</span>
+          <span class="btn-text-full">Run Code</span>
+          <span class="btn-text-short">Run</span>
         </button>
       </div>
     </header>
@@ -87,7 +88,7 @@
           <polyline points="16 18 22 12 16 6"></polyline>
           <polyline points="8 6 2 12 8 18"></polyline>
         </svg>
-        <span id="mobileEditorTabLabel">Source Editor</span>
+        <span id="mobileEditorTabLabel">Editor</span>
       </button>
       <button class="mobile-tab-btn" id="tabVisualizerBtn">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
@@ -95,19 +96,22 @@
           <path d="M3 9h18"></path>
           <path d="M9 21V9"></path>
         </svg>
-        Visualization (<span id="mobileStepCount">0/0</span>)
+        <span class="tab-label-full">Visualization (<span id="mobileStepCount">0/0</span>)</span>
+        <span class="tab-label-short">Viz (<span id="mobileStepCountShort">0/0</span>)</span>
       </button>
-      <button class="mobile-tab-btn" id="tabOutputBtn">
+      <button class="mobile-tab-btn" id="tabMobileDockBtn">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="4 17 10 11 4 5"></polyline>
-          <line x1="12" y1="19" x2="20" y2="19"></line>
+          <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+          <line x1="2" y1="9" x2="22" y2="9"></line>
+          <line x1="2" y1="14" x2="22" y2="14"></line>
         </svg>
-        <span>Output & State</span>
+        <span class="tab-label-full">Variables & Output</span>
+        <span class="tab-label-short">Output & State</span>
       </button>
     </div>
 
     <!-- Main Workspace -->
-    <main class="workspace-main">
+    <main class="workspace-main" id="workspaceMain">
       <!-- Left: Editor Pane -->
       <section class="pane left-pane mobile-active" id="editorPane">
         <div class="pane-header">
@@ -120,11 +124,6 @@
           </div>
           <div class="pane-tools">
             <span class="active-line-badge" id="activeLineBadge">Line 1</span>
-            <div class="editor-font-scaler" title="Adjust code editor font size">
-              <span class="scaler-lbl">A-</span>
-              <input type="range" id="editorFontSizeSlider" min="11" max="18" value="13" class="editor-scale-slider" aria-label="Editor Font Size">
-              <span class="scaler-lbl">A+</span>
-            </div>
             <button id="formatBtn" class="tool-btn" title="Reload Preset Example">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
@@ -133,6 +132,17 @@
                 <path d="M3 21v-5h5"></path>
               </svg>
               <span>Reload Example</span>
+            </button>
+            <button id="maximizeEditorBtn" class="tool-btn icon-only-tool" title="Maximize / Restore Editor (Double-click divider also works)">
+              <svg class="maximize-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              </svg>
+              <svg class="restore-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                <polyline points="4 14 10 14 10 20"></polyline>
+                <polyline points="20 10 14 10 14 4"></polyline>
+                <line x1="14" y1="10" x2="21" y2="3"></line>
+                <line x1="3" y1="21" x2="10" y2="14"></line>
+              </svg>
             </button>
           </div>
         </div>
@@ -156,9 +166,11 @@
         </div>
       </section>
 
-      <!-- Draggable Splitter Divider between Editor & Visualizer -->
-      <div class="pane-resizer" id="paneResizer" title="Drag to resize editor and visualizer (Double-click to reset)" role="separator" aria-orientation="vertical">
-        <div class="resizer-handle"></div>
+      <!-- Horizontal Splitter Gutter (Draggable with Mouse) -->
+      <div class="resizer-gutter resizer-horizontal" id="horizontalResizer" role="separator" aria-orientation="vertical" tabindex="0" title="Drag horizontally to resize Editor / Visualizer (Double-click to reset 50/50)">
+        <div class="resizer-handle">
+          <span class="handle-dots"></span>
+        </div>
       </div>
 
       <!-- Right: Visualization Workspace -->
@@ -170,11 +182,22 @@
               <line x1="8" y1="21" x2="16" y2="21"></line>
               <line x1="12" y1="17" x2="12" y2="21"></line>
             </svg>
-            <span id="vizTitle">Memory & Data Structure State</span>
+            <span id="vizTitle"><span class="viz-title-full">Memory & Data Structure State</span><span class="viz-title-short">Visualization</span></span>
           </div>
           <div class="viz-header-meta">
             <span class="ds-type-pill" id="dsTypePill">ARRAY</span>
             <span class="step-counter-pill" id="stepCounterPill">Step 0 / 0</span>
+            <button id="maximizeVisualizerBtn" class="tool-btn icon-only-tool" title="Maximize / Restore Visualizer">
+              <svg class="maximize-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              </svg>
+              <svg class="restore-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                <polyline points="4 14 10 14 10 20"></polyline>
+                <polyline points="20 10 14 10 14 4"></polyline>
+                <line x1="14" y1="10" x2="21" y2="3"></line>
+                <line x1="3" y1="21" x2="10" y2="14"></line>
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -215,13 +238,14 @@
             <button id="autoFollowBtn" class="control-btn toggle-active" title="Toggle Auto-Follow Visualization (keeps active element centered)">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="7"></circle>
-                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="12" cy="2" r="2"></circle>
                 <line x1="12" y1="2" x2="12" y2="5"></line>
                 <line x1="12" y1="19" x2="12" y2="22"></line>
                 <line x1="2" y1="12" x2="5" y2="12"></line>
                 <line x1="19" y1="12" x2="22" y2="12"></line>
               </svg>
-              <span id="autoFollowText">Auto-Follow: ON</span>
+              <span class="auto-follow-full" id="autoFollowText">Auto-Follow: ON</span>
+              <span class="auto-follow-short" id="autoFollowTextShort">Auto: ON</span>
             </button>
           </div>
 
@@ -290,18 +314,40 @@
           </div>
         </div>
 
-        <!-- Draggable Resizer for Bottom Dock / Output Section -->
-        <div class="dock-resizer" id="dockResizer" title="Drag to resize output / state dock (Double-click to reset)" role="separator" aria-orientation="horizontal">
-          <div class="dock-resizer-handle"></div>
+        <!-- Vertical Splitter Gutter (Draggable with Mouse) -->
+        <div class="resizer-gutter resizer-vertical" id="verticalResizer" role="separator" aria-orientation="horizontal" tabindex="0" title="Drag vertically to resize Stage / Info Dock (Double-click to reset / collapse)">
+          <div class="resizer-handle">
+            <span class="handle-dots"></span>
+          </div>
         </div>
 
         <!-- Execution Information Panel -->
         <div class="info-dock" id="infoDock">
           <div class="info-tabs-header">
-            <button class="info-tab-btn active" id="tabVarsBtn">Local Variables</button>
-            <button class="info-tab-btn" id="tabInspectorBtn">Execution Inspector</button>
-            <button class="info-tab-btn" id="tabMemoryBtn">Memory State</button>
-            <button class="info-tab-btn" id="tabConsoleBtn">Console Output (<span id="consoleCharCount">0</span>)</button>
+            <div class="info-tabs-nav">
+              <button class="info-tab-btn active" id="tabVarsBtn">Local Variables</button>
+              <button class="info-tab-btn" id="tabInspectorBtn">Execution Inspector</button>
+              <button class="info-tab-btn" id="tabMemoryBtn">Memory State</button>
+              <button class="info-tab-btn" id="tabConsoleBtn">Console Output (<span id="consoleCharCount">0</span>)</button>
+            </div>
+            <div class="dock-actions">
+              <button class="dock-action-btn" id="collapseDockBtn" title="Collapse / Expand Bottom Dock (Double-click divider also works)">
+                <svg id="collapseDockIcon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+                <svg id="expandDockIcon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                  <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+              </button>
+              <button class="dock-action-btn" id="maximizeDockBtn" title="Maximize / Restore Bottom Dock">
+                <svg class="dock-max-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+                <svg class="dock-restore-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+            </div>
           </div>
 
           <!-- Tab 1: Local Variables -->
@@ -384,13 +430,13 @@
             <polyline points="4 17 10 11 4 5"></polyline>
             <line x1="12" y1="19" x2="20" y2="19"></line>
           </svg>
-          <span id="footerEngineLabel">Client-Side Tracing Engine (C / Python / Java)</span>
+          <span id="footerEngineLabel"><span class="engine-label-full">Client-Side Tracing Engine (C / Python / Java)</span><span class="engine-label-short">Client Engine</span></span>
         </span>
         <span class="footer-item footer-separator">|</span>
         <span class="footer-item" id="footerActiveOp">Idle</span>
       </div>
 
-      <!-- Developer Credit: Exactly 'Developed by Pratiyush Jaiswal' -->
+      <!-- Developer Credit: Developed by Pratiyush Jaiswal -->
       <div class="footer-center">
         <span class="footer-credit">Developed by Pratiyush Jaiswal</span>
       </div>
